@@ -12,8 +12,7 @@ class GUI:
     window = None
 
     def __init__(self):
-        layout = [[sg.Text("What's your name?")],
-                  [sg.Text(size=(40,10), key='-TITLE-')],  # Part 2 - The Layout
+        layout = [[sg.Text(size=(40,10), key='-TITLE-')],  # Part 2 - The Layout
                   [sg.Button('Take a screenshot')]]
 
         GUI.window = sg.Window('Attacer server', layout, finalize=True)
@@ -23,6 +22,8 @@ class GUI:
 
             if event == sg.WINDOW_CLOSED or event == 'Quit':
                 break
+            if event == 'Take a screenshot':
+                self.take_screenshot()
 
         GUI.window.close()
 
