@@ -1,3 +1,6 @@
+screenshots/*
+sent_to_victim/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
